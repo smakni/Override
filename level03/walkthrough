@@ -1,0 +1,28 @@
+Testons notre binaire
+
+level03@OverRide:~$ ./level03
+***********************************
+*		level03		**
+***********************************
+Password:admin
+
+Invalid Password
+
+Observons le code assembleur dans gdb
+
+La fonction main envoie notre input et la constante 0x1337d00d dans la fonction test.
+
+Au début de la fonction test il y a une comparaison non signée du résultat de la soustraction de 0x1337d00d et notre input.
+Si le résultat de cette soustraction est compris entre 0 et 21 : on passe dans un bloc de code avec un jump conditionnel de eax.
+
+En essayant les 21 possibilités restantes on trouve que 322424827 est le password.
+
+level03@OverRide:~$ ./level03
+***********************************
+*		level03		**
+***********************************
+Password:322424827
+$ whoami
+level04
+$ cat /home/users/level04/.pass
+kgv3tkEb9h2mLkRsPkXRfc2mHbjMxQzvb2FrgKkf

